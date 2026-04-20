@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ethereum vs RGB — USDT Transfer Experience</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #070d1a;
+    --bg2: #0c1528;
+    --bg3: #111e33;
+    --eth: #627eea;
+    --eth-dk: #3a4e9a;
+    --eth-glow: rgba(98,126,234,0.18);
+    --rgb: #00d4aa;
+    --rgb-dk: #009b7d;
+    --rgb-glow: rgba(0,212,170,0.18);
+    --gold: #f7b731;
+    --red: #ef4444;
+    --gray: #94a3b8;
+    --gray2: #64748b;
+    --border: rgba(255,255,255,0.07);
+    --card: rgba(255,255,255,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: #fff;
+    min-height: 100vh;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--rgb);
+    box-shadow: 0 0 10px var(--rgb);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; box-shadow: 0 0 10px var(--rgb); }
+    50% { opacity:0.5; box-shadow: 0 0 20px var(--rgb); }
+  }
+  .header-title {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gray);
+  }
+  .header-badge {
+    background: rgba(0,212,170,0.12); border: 1px solid rgba(0,212,170,0.3);
+    color: var(--rgb); font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 100px; letter-spacing: 0.06em;
+  }
+  .header-meta { display: flex; align-items: center; gap: 20px; }
+  .meta-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gray2); }
+  .meta-item span { color: var(--gray); }
+
+  /* ── Main title ── */
+  .main-title {
+    text-align: center;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--gray2); margin-bottom: 4px;
+  }
+  .main-headline {
+    text-align: center;
+    font-size: 28px; font-weight: 800; line-height: 1.2;
+    background: linear-gradient(90deg, #627eea 0%, #a78bfa 40%, #00d4aa 80%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+  .main-sub {
+    text-align: center; font-size: 13px; color: var(--gray2); font-weight: 400;
+  }
+
+  /* ── Summary bar ── */
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  .sum-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .sum-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray2); }
+  .sum-val { font-size: 22px; font-weight: 800; line-height: 1; }
+  .sum-sub { font-size: 11px; color: var(--gray2); margin-top: 2px; }
+  .pos { color: var(--rgb); }
+  .neg { color: var(--red); }
+
+  /* ── Main grid ── */
+  .main-grid {
+    display: grid; grid-template-columns: 1fr 56px 1fr; gap: 0; align-items: start;
+  }
+
+  /* ── Panel ── */
+  .panel {
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .panel-eth { background: linear-gradient(160deg, #0e1428 0%, #0a1020 100%); border-color: rgba(98,126,234,0.25); }
+  .panel-rgb { background: linear-gradient(160deg, #0a1e1a 0%, #061512 100%); border-color: rgba(0,212,170,0.25); }
+
+  .panel-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-chain { display: flex; align-items: center; gap: 10px; }
+  .chain-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+  }
+  .icon-eth { background: rgba(98,126,234,0.2); color: var(--eth); border: 1px solid rgba(98,126,234,0.3); }
+  .icon-rgb { background: rgba(0,212,170,0.2); color: var(--rgb); border: 1px solid rgba(0,212,170,0.3); }
+  .chain-name { font-size: 18px; font-weight: 800; }
+  .chain-sub { font-size: 11px; color: var(--gray2); margin-top: 1px; }
+  .status-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 100px;
+    font-size: 11px; font-weight: 600;
+  }
+  .status-eth { background: rgba(98,126,234,0.12); border: 1px solid rgba(98,126,234,0.25); color: var(--eth); }
+  .status-rgb { background: rgba(0,212,170,0.12); border: 1px solid rgba(0,212,170,0.25); color: var(--rgb); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-eth { background: var(--eth); animation: pulse-eth 1.8s infinite; }
+  .dot-rgb { background: var(--rgb); animation: pulse-rgb 1.2s infinite; }
+  @keyframes pulse-eth { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes pulse-rgb { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+
+  .panel-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── TX card ── */
+  .tx-card {
+    background: rgba(0,0,0,0.25); border-radius: 10px;
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .tx-header {
+    padding: 10px 14px; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .tx-header-eth { color: var(--eth); background: rgba(98,126,234,0.07); }
+  .tx-header-rgb { color: var(--rgb); background: rgba(0,212,170,0.07); }
+  .tx-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+  .tx-row {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  }
+  .tx-label { font-size: 11px; color: var(--gray2); font-weight: 500; white-space: nowrap; padding-top: 1px; }
+  .tx-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gray); text-align: right; word-break: break-all; }
+  .tx-val.hi { color: var(--rgb); font-weight: 700; }
+  .tx-val.warn { color: var(--red); font-weight: 700; }
+  .tx-val.gold { color: var(--gold); font-weight: 700; }
+  .tx-val.white { color: #fff; font-weight: 600; }
+
+  /* ── Metric cards ── */
+  .metrics-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric-card {
+    background: rgba(0,0,0,0.25); border-radius: 10px;
+    border: 1px solid var(--border); padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .metric-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray2); }
+  .metric-val { font-size: 24px; font-weight: 900; line-height: 1; }
+  .metric-sub { font-size: 11px; color: var(--gray2); }
+  .metric-bar-wrap { height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+  .metric-bar { height: 100%; border-radius: 2px; }
+
+  /* ── Privacy block ── */
+  .privacy-block {
+    background: rgba(0,0,0,0.25); border-radius: 10px;
+    border: 1px solid var(--border); padding: 14px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .privacy-title { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .privacy-row { display: flex; align-items: center; gap: 8px; }
+  .priv-icon { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+  .priv-text { font-size: 12px; color: var(--gray); }
+  .priv-text strong { color: #fff; font-weight: 600; }
+
+  /* ── MEV warning ── */
+  .mev-warn {
+    background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
+    border-radius: 10px; padding: 12px 14px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .mev-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .mev-content {}
+  .mev-title { font-size: 12px; font-weight: 700; color: var(--red); }
+  .mev-desc { font-size: 11px; color: var(--gray2); margin-top: 3px; line-height: 1.5; }
+
+  /* ── CSV callout ── */
+  .csv-callout {
+    background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 10px; padding: 12px 14px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .csv-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .csv-title { font-size: 12px; font-weight: 700; color: var(--rgb); }
+  .csv-desc { font-size: 11px; color: var(--gray2); margin-top: 3px; line-height: 1.5; }
+
+  /* ── Progress bar ── */
+  .confirm-block { background: rgba(0,0,0,0.25); border-radius: 10px; border: 1px solid var(--border); padding: 14px; }
+  .confirm-title { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray2); margin-bottom: 10px; }
+  .blocks-row { display: flex; gap: 5px; margin-bottom: 8px; }
+  .block-box {
+    flex: 1; height: 28px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+    transition: all 0.3s;
+  }
+  .block-done { background: rgba(98,126,234,0.25); border: 1px solid rgba(98,126,234,0.4); color: var(--eth); }
+  .block-current { background: rgba(98,126,234,0.5); border: 1px solid var(--eth); color: #fff; animation: block-pulse 1s infinite; }
+  .block-pending { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--gray2); }
+  @keyframes block-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .confirm-text { font-size: 11px; color: var(--gray2); text-align: right; }
+  .confirm-text span { color: var(--gold); font-weight: 600; }
+
+  .ln-instant {
+    background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.3);
+    border-radius: 8px; padding: 12px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ln-label { font-size: 11px; color: var(--gray2); }
+  .ln-val { font-size: 20px; font-weight: 900; color: var(--rgb); }
+  .ln-path { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+  .ln-node { background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.3); color: var(--rgb); border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .ln-arrow { color: var(--rgb); font-size: 14px; }
+  .lightning-bolt { font-size: 28px; animation: zap 1.5s ease-in-out infinite; }
+  @keyframes zap { 0%,100%{transform:scale(1);filter:brightness(1)} 50%{transform:scale(1.2);filter:brightness(1.4)} }
+
+  /* ── Divider ── */
+  .vs-divider {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 16px; padding: 0 4px;
+  }
+  .vs-line { flex: 1; width: 1px; background: var(--border); }
+  .vs-badge {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 900; color: var(--gray2);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Gas tracker ── */
+  .gas-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .gas-row:last-child { border-bottom: none; }
+  .gas-type { font-size: 11px; color: var(--gray2); }
+  .gas-gwei { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; }
+  .gas-usd { font-size: 10px; color: var(--gray2); }
+
+  /* ── Verdict ── */
+  .verdict-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+  .verdict-card {
+    border-radius: 12px; padding: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .verdict-eth { background: rgba(98,126,234,0.08); border: 1px solid rgba(98,126,234,0.2); }
+  .verdict-rgb { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.2); }
+  .verdict-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .verdict-items { display: flex; flex-direction: column; gap: 5px; }
+  .verdict-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--gray); }
+  .vi { width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0; font-weight: 900; }
+  .vi-x { background: rgba(239,68,68,0.2); color: var(--red); }
+  .vi-ok { background: rgba(0,212,170,0.2); color: var(--rgb); }
+
+  /* ── Bottom footer ── */
+  .footer {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--border); padding-top: 14px;
+    font-size: 10px; color: var(--gray2);
+  }
+  .footer-brand { display: flex; align-items: center; gap: 8px; }
+  .footer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rgb); }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-link { color: var(--gray2); text-decoration: none; letter-spacing: 0.05em; }
+
+  /* ── Scrolling ticker ── */
+  .ticker-wrap { overflow: hidden; white-space: nowrap; }
+  .ticker { display: inline-block; animation: ticker 18s linear infinite; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--gray2); }
+  @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  .tick-item { display: inline; margin-right: 48px; }
+  .tick-hi { color: var(--rgb); }
+  .tick-lo { color: var(--red); }
+
+  /* ── Score compare ── */
+  .score-row { display: grid; grid-template-columns: 90px 1fr 40px 1fr 90px; align-items: center; gap: 8px; }
+  .score-label { font-size: 11px; font-weight: 600; color: var(--gray2); text-align: center; }
+  .score-bar-eth { height: 8px; border-radius: 4px 0 0 4px; background: linear-gradient(90deg, var(--eth-dk), var(--eth)); justify-self: end; }
+  .score-bar-rgb { height: 8px; border-radius: 0 4px 4px 0; background: linear-gradient(90deg, var(--rgb-dk), var(--rgb)); }
+  .score-divider { width: 1px; background: var(--border); height: 100%; margin: 0 auto; }
+  .score-center { text-align: center; font-size: 10px; font-weight: 700; color: var(--gray2); white-space: nowrap; }
+  .score-eth-num { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--eth); }
+  .score-rgb-num { text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--rgb); }
+
+  .comparison-block {
+    background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .comp-header { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gray2); margin-bottom: 2px; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-dot"></div>
+    <div>
+      <div class="header-title">RGB Protocol Association — Live Experience Dashboard</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="meta-item">Network: <span>Bitcoin Mainnet + Lightning</span></div>
+    <div class="meta-item">Block: <span>#891,402</span></div>
+    <div class="meta-item">BTC: <span style="color:#f7b731">$83,241</span></div>
+    <div class="header-badge">● LIVE SIMULATION</div>
+  </div>
+</div>
+
+<!-- ══ HEADLINE ══ -->
+<div>
+  <div class="main-title">USDT Transfer Experience Comparison</div>
+  <div class="main-headline">Ethereum vs RGB on Lightning Network</div>
+  <div class="main-sub">Sending 500 USDT — Same transaction, fundamentally different experience</div>
+</div>
+
+<!-- ══ SUMMARY BAR ══ -->
+<div class="summary-bar">
+  <div class="sum-card">
+    <div class="sum-label">Fee Difference</div>
+    <div class="sum-val pos">99.99%</div>
+    <div class="sum-sub">cheaper on RGB Lightning</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">Speed Difference</div>
+    <div class="sum-val pos">∞ faster</div>
+    <div class="sum-sub">Instant vs. 12–30 sec block time</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">Front-Running Risk</div>
+    <div class="sum-val neg">HIGH</div>
+    <div class="sum-sub" style="color:var(--red)">on Ethereum Mainnet</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">RGB Front-Running Risk</div>
+    <div class="sum-val pos">ZERO</div>
+    <div class="sum-sub">Miners can't see RGB txs</div>
+  </div>
+</div>
+
+<!-- ══ MAIN PANELS ══ -->
+<div class="main-grid">
+
+  <!-- LEFT: Ethereum -->
+  <div class="panel panel-eth">
+    <div class="panel-header">
+      <div class="panel-chain">
+        <div class="chain-icon icon-eth">Ξ</div>
+        <div>
+          <div class="chain-name" style="color:var(--eth)">Ethereum</div>
+          <div class="chain-sub">ERC-20 USDT · Mainnet</div>
+        </div>
+      </div>
+      <div class="status-pill status-eth">
+        <div class="status-dot dot-eth"></div>
+        Pending Confirmation
+      </div>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- TX Details -->
+      <div class="tx-card">
+        <div class="tx-header tx-header-eth">
+          <span>Transaction Details</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray2)">0x7f4a...c83e</span>
+        </div>
+        <div class="tx-body">
+          <div class="tx-row">
+            <div class="tx-label">Amount</div>
+            <div class="tx-val white">500 USDT</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">Gas Used</div>
+            <div class="tx-val warn">65,000 gas units</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">Base Fee</div>
+            <div class="tx-val warn">32.4 Gwei</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">Priority Fee (tip)</div>
+            <div class="tx-val warn">2.0 Gwei</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">Total Network Fee</div>
+            <div class="tx-val warn" style="font-size:15px">$6.84 USD</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">On-Chain Data</div>
+            <div class="tx-val" style="color:var(--red);font-size:11px">⚠ FULLY PUBLIC</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gas Tracker -->
+      <div class="tx-card">
+        <div class="tx-header tx-header-eth"><span>Gas Price Tracker</span><span style="color:var(--red);font-size:10px">⬆ VOLATILE</span></div>
+        <div class="tx-body" style="gap:4px">
+          <div class="gas-row"><span class="gas-type">🐌 Slow (60s+)</span><span class="gas-gwei" style="color:var(--gray)">28 Gwei</span><span class="gas-usd">≈ $5.91</span></div>
+          <div class="gas-row"><span class="gas-type">⚡ Standard (30s)</span><span class="gas-gwei" style="color:var(--gold)">34 Gwei</span><span class="gas-usd">≈ $7.17</span></div>
+          <div class="gas-row"><span class="gas-type">🚀 Fast (15s)</span><span class="gas-gwei" style="color:var(--red)">41 Gwei</span><span class="gas-usd">≈ $8.65</span></div>
+        </div>
+      </div>
+
+      <!-- Block Confirmations -->
+      <div class="confirm-block">
+        <div class="confirm-title">Block Confirmations Required</div>
+        <div class="blocks-row">
+          <div class="block-box block-done">#1</div>
+          <div class="block-box block-done">#2</div>
+          <div class="block-box block-done">#3</div>
+          <div class="block-box block-current">#4 ↻</div>
+          <div class="block-box block-pending">#5</div>
+          <div class="block-box block-pending">#6</div>
+        </div>
+        <div class="confirm-text">Waiting for <span>6 confirmations</span> · ~72 seconds remaining</div>
+      </div>
+
+      <!-- MEV Warning -->
+      <div class="mev-warn">
+        <div class="mev-icon">🤖</div>
+        <div class="mev-content">
+          <div class="mev-title">MEV / Front-Running Detected</div>
+          <div class="mev-desc">Your transaction is visible in the public mempool. MEV bots are scanning your trade and may sandwich-attack your USDT transfer before it settles, extracting an estimated <strong style="color:var(--red)">$0.14–$0.38</strong> in slippage.</div>
+        </div>
+      </div>
+
+      <!-- Privacy block -->
+      <div class="privacy-block">
+        <div class="privacy-title" style="color:var(--red)">⚠ Privacy Exposure</div>
+        <div class="privacy-row">
+          <div class="priv-icon" style="background:rgba(239,68,68,0.15);color:var(--red)">👁</div>
+          <div class="priv-text"><strong>Sender address</strong> fully visible on Etherscan</div>
+        </div>
+        <div class="privacy-row">
+          <div class="priv-icon" style="background:rgba(239,68,68,0.15);color:var(--red)">👁</div>
+          <div class="priv-text"><strong>Receiver address</strong> publicly linked to KYC data</div>
+        </div>
+        <div class="privacy-row">
+          <div class="priv-icon" style="background:rgba(239,68,68,0.15);color:var(--red)">👁</div>
+          <div class="priv-text"><strong>Amount</strong> (500 USDT) publicly traceable forever</div>
+        </div>
+        <div class="privacy-row">
+          <div class="priv-icon" style="background:rgba(239,68,68,0.15);color:var(--red)">👁</div>
+          <div class="priv-text"><strong>Validator nodes</strong> can inspect and censor transactions</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DIVIDER -->
+  <div class="vs-divider">
+    <div class="vs-line"></div>
+    <div class="vs-badge">VS</div>
+    <div class="vs-line"></div>
+  </div>
+
+  <!-- RIGHT: RGB -->
+  <div class="panel panel-rgb">
+    <div class="panel-header">
+      <div class="panel-chain">
+        <div class="chain-icon icon-rgb" style="font-size:14px;font-weight:900">RGB</div>
+        <div>
+          <div class="chain-name" style="color:var(--rgb)">RGB on Lightning</div>
+          <div class="chain-sub">Native USDT · Bitcoin Layer-2</div>
+        </div>
+      </div>
+      <div class="status-pill status-rgb">
+        <div class="status-dot dot-rgb"></div>
+        Settled Instantly
+      </div>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- TX Details -->
+      <div class="tx-card">
+        <div class="tx-header tx-header-rgb">
+          <span>Transaction Details</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray2)">lnbc500u1p3k...</span>
+        </div>
+        <div class="tx-body">
+          <div class="tx-row">
+            <div class="tx-label">Amount</div>
+            <div class="tx-val white">500 USDT</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">Protocol</div>
+            <div class="tx-val hi">Client-Side Validation</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">Lightning Routing Fee</div>
+            <div class="tx-val hi">~1 sat (routing)</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">On-Chain Fee</div>
+            <div class="tx-val hi">$0.00 (off-chain)</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">Total Network Fee</div>
+            <div class="tx-val hi" style="font-size:15px">$0.0007 USD</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-label">On-Chain Visibility</div>
+            <div class="tx-val hi" style="font-size:11px">✓ INVISIBLE TO MINERS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instant Settlement -->
+      <div class="tx-card">
+        <div class="tx-header tx-header-rgb"><span>Lightning Network Path</span><span style="color:var(--rgb)">✓ ROUTED</span></div>
+        <div class="tx-body">
+          <div class="ln-instant">
+            <div>
+              <div class="ln-label">Settlement Time</div>
+              <div class="ln-val">∼ 0.8s</div>
+              <div class="ln-path">
+                <div class="ln-node">alice_LN</div>
+                <div class="ln-arrow">→</div>
+                <div class="ln-node">hub_01</div>
+                <div class="ln-arrow">→</div>
+                <div class="ln-node">bob_LN</div>
+              </div>
+            </div>
+            <div class="lightning-bolt">⚡</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CSV Callout -->
+      <div class="csv-callout">
+        <div class="csv-icon">🔐</div>
+        <div>
+          <div class="csv-title">Client-Side Validation Active</div>
+          <div class="csv-desc">Transaction data is exchanged exclusively between sender and receiver (peer-to-peer). Only a cryptographic commitment hash is anchored to Bitcoin. Miners process the Bitcoin transaction <strong style="color:var(--rgb)">without ever seeing the RGB transfer contents</strong> — making censorship structurally impossible.</div>
+        </div>
+      </div>
+
+      <!-- Privacy block -->
+      <div class="privacy-block" style="border-color:rgba(0,212,170,0.2);background:rgba(0,212,170,0.05)">
+        <div class="privacy-title" style="color:var(--rgb)">✓ Privacy Guarantee</div>
+        <div class="privacy-row">
+          <div class="priv-icon" style="background:rgba(0,212,170,0.15);color:var(--rgb)">🔒</div>
+          <div class="priv-text"><strong>Sender & receiver</strong> not linked on public blockchain</div>
+        </div>
+        <div class="privacy-row">
+          <div class="priv-icon" style="background:rgba(0,212,170,0.15);color:var(--rgb)">🔒</div>
+          <div class="priv-text"><strong>Amount</strong> (500 USDT) known only to counterparties</div>
+        </div>
+        <div class="privacy-row">
+          <div class="priv-icon" style="background:rgba(0,212,170,0.15);color:var(--rgb)">🔒</div>
+          <div class="priv-text"><strong>Zero MEV exposure</strong> — mempool is invisible to bots</div>
+        </div>
+        <div class="privacy-row">
+          <div class="priv-icon" style="background:rgba(0,212,170,0.15);color:var(--rgb)">🔒</div>
+          <div class="priv-text"><strong>Bitcoin PoW security</strong> anchors final settlement</div>
+        </div>
+      </div>
+
+      <!-- Fee comparison note -->
+      <div style="background:rgba(247,183,49,0.07);border:1px solid rgba(247,183,49,0.2);border-radius:10px;padding:12px 14px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Fee Savings Calculator</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="font-size:28px;font-weight:900;color:var(--gold)">$9,922</div>
+          <div style="font-size:12px;color:var(--gray2)">saved annually on 4 daily USDT transfers vs. Ethereum</div>
+        </div>
+        <div style="font-size:10px;color:var(--gray2);margin-top:4px">Based on Ξ avg. fee $6.84 × 1,460 txs/yr vs. RGB Lightning $0.0007/tx</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCORE COMPARISON ══ -->
+<div class="comparison-block">
+  <div class="comp-header">Head-to-Head Performance Scorecard — 500 USDT Transfer</div>
+
+  <div style="display:grid;grid-template-columns:1fr 120px 1fr;gap:0;align-items:center;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:4px">
+    <div style="text-align:right;font-size:11px;font-weight:700;color:var(--eth)">ETHEREUM</div>
+    <div></div>
+    <div style="text-align:left;font-size:11px;font-weight:700;color:var(--rgb)">RGB LIGHTNING</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+
+    <!-- Fee -->
+    <div style="display:grid;grid-template-columns:90px 1fr 120px 1fr 90px;align-items:center;gap:8px">
+      <div style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--red)">$6.84</div>
+      <div style="display:flex;justify-content:flex-end"><div style="height:10px;width:95%;border-radius:4px 0 0 4px;background:linear-gradient(90deg,var(--eth-dk),var(--eth))"></div></div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--gray2);border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 8px">Network Fee</div>
+      <div><div style="height:10px;width:1%;border-radius:0 4px 4px 0;background:linear-gradient(90deg,var(--rgb-dk),var(--rgb))"></div></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--rgb)">$0.0007</div>
+    </div>
+
+    <!-- Speed -->
+    <div style="display:grid;grid-template-columns:90px 1fr 120px 1fr 90px;align-items:center;gap:8px">
+      <div style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--gold)">~30 sec</div>
+      <div style="display:flex;justify-content:flex-end"><div style="height:10px;width:65%;border-radius:4px 0 0 4px;background:linear-gradient(90deg,var(--eth-dk),var(--eth))"></div></div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--gray2);border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 8px">Settlement</div>
+      <div><div style="height:10px;width:2%;border-radius:0 4px 4px 0;background:linear-gradient(90deg,var(--rgb-dk),var(--rgb))"></div></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--rgb)">∼ 0.8s</div>
+    </div>
+
+    <!-- Privacy -->
+    <div style="display:grid;grid-template-columns:90px 1fr 120px 1fr 90px;align-items:center;gap:8px">
+      <div style="text-align:right;font-size:12px;font-weight:700;color:var(--red)">PUBLIC</div>
+      <div style="display:flex;justify-content:flex-end"><div style="height:10px;width:100%;border-radius:4px 0 0 4px;background:linear-gradient(90deg,rgba(239,68,68,0.5),var(--red))"></div></div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--gray2);border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 8px">On-Chain Data</div>
+      <div><div style="height:10px;width:0%;border-radius:0 4px 4px 0;background:var(--rgb)"></div></div>
+      <div style="font-size:12px;font-weight:700;color:var(--rgb)">INVISIBLE</div>
+    </div>
+
+    <!-- MEV -->
+    <div style="display:grid;grid-template-columns:90px 1fr 120px 1fr 90px;align-items:center;gap:8px">
+      <div style="text-align:right;font-size:12px;font-weight:700;color:var(--red)">HIGH</div>
+      <div style="display:flex;justify-content:flex-end"><div style="height:10px;width:88%;border-radius:4px 0 0 4px;background:linear-gradient(90deg,rgba(239,68,68,0.4),var(--red))"></div></div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--gray2);border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 8px">MEV Exposure</div>
+      <div><div style="height:10px;width:0%;border-radius:0 4px 4px 0;background:var(--rgb)"></div></div>
+      <div style="font-size:12px;font-weight:700;color:var(--rgb)">ZERO</div>
+    </div>
+
+    <!-- Security -->
+    <div style="display:grid;grid-template-columns:90px 1fr 120px 1fr 90px;align-items:center;gap:8px">
+      <div style="text-align:right;font-size:12px;font-weight:700;color:var(--eth)">PoS</div>
+      <div style="display:flex;justify-content:flex-end"><div style="height:10px;width:55%;border-radius:4px 0 0 4px;background:linear-gradient(90deg,var(--eth-dk),var(--eth))"></div></div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--gray2);border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 8px">Security Model</div>
+      <div><div style="height:10px;width:100%;border-radius:0 4px 4px 0;background:linear-gradient(90deg,var(--rgb-dk),var(--rgb))"></div></div>
+      <div style="font-size:12px;font-weight:700;color:var(--rgb)">BTC PoW</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ VERDICT ROW ══ -->
+<div class="verdict-row">
+  <div class="verdict-card verdict-eth">
+    <div class="verdict-title" style="color:var(--eth)">Ξ Ethereum · Trade-offs</div>
+    <div class="verdict-items">
+      <div class="verdict-item"><div class="vi vi-x">✕</div>High & volatile gas fees ($4–$50+)</div>
+      <div class="verdict-item"><div class="vi vi-x">✕</div>Transactions fully visible in mempool</div>
+      <div class="verdict-item"><div class="vi vi-x">✕</div>MEV bots can front-run your trade</div>
+      <div class="verdict-item"><div class="vi vi-x">✕</div>PoS: weaker decentralization guarantees</div>
+      <div class="verdict-item"><div class="vi vi-x">✕</div>Requires 6 block confirmations</div>
+    </div>
+  </div>
+  <div class="verdict-card verdict-rgb">
+    <div class="verdict-title" style="color:var(--rgb)">RGB Lightning · Advantages</div>
+    <div class="verdict-items">
+      <div class="verdict-item"><div class="vi vi-ok">✓</div>Near-zero fee ($0.0007 per transfer)</div>
+      <div class="verdict-item"><div class="vi vi-ok">✓</div>Client-Side Validation — invisible on-chain</div>
+      <div class="verdict-item"><div class="vi vi-ok">✓</div>Zero MEV exposure by architectural design</div>
+      <div class="verdict-item"><div class="vi vi-ok">✓</div>Secured by Bitcoin Proof-of-Work</div>
+      <div class="verdict-item"><div class="vi vi-ok">✓</div>Instant Lightning settlement (~0.8 seconds)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TICKER ══ -->
+<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 14px;">
+  <div class="ticker-wrap">
+    <div class="ticker">
+      <span class="tick-item">BTC/USD <span class="tick-hi">$83,241</span></span>
+      <span class="tick-item">ETH Gas <span class="tick-lo">34 Gwei</span></span>
+      <span class="tick-item">USDT Supply <span class="tick-hi">$140.2B</span></span>
+      <span class="tick-item">RGB LN Fee <span class="tick-hi">1 sat</span></span>
+      <span class="tick-item">Lightning Nodes <span class="tick-hi">14,821</span></span>
+      <span class="tick-item">Tether on RGB <span class="tick-hi" style="color:var(--gold)">COMING SOON ⚡</span></span>
+      <span class="tick-item">MEV Extracted 2024 <span class="tick-lo">$1.38B</span></span>
+      <span class="tick-item">RGB Txs on-chain visible <span class="tick-hi">0</span></span>
+      <span class="tick-item">BTC/USD <span class="tick-hi">$83,241</span></span>
+      <span class="tick-item">ETH Gas <span class="tick-lo">34 Gwei</span></span>
+      <span class="tick-item">USDT Supply <span class="tick-hi">$140.2B</span></span>
+      <span class="tick-item">RGB LN Fee <span class="tick-hi">1 sat</span></span>
+      <span class="tick-item">Lightning Nodes <span class="tick-hi">14,821</span></span>
+      <span class="tick-item">Tether on RGB <span class="tick-hi" style="color:var(--gold)">COMING SOON ⚡</span></span>
+      <span class="tick-item">MEV Extracted 2024 <span class="tick-lo">$1.38B</span></span>
+      <span class="tick-item">RGB Txs on-chain visible <span class="tick-hi">0</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<div class="footer">
+  <div class="footer-brand">
+    <div class="footer-dot"></div>
+    <span>RGB Protocol Association · rgbprotocol.org · rgb.info</span>
+  </div>
+  <div style="font-size:10px;color:var(--gray2)">This dashboard is a conceptual simulation for educational purposes. All fee data reflects real market conditions (April 2026).</div>
+  <div class="footer-links">
+    <a class="footer-link" href="#">rgb.info</a>
+    <a class="footer-link" href="#">GitHub</a>
+    <a class="footer-link" href="#">Telegram</a>
+    <a class="footer-link" href="#">Docs</a>
+  </div>
+</div>
+
+</body>
+</html>
